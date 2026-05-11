@@ -1,5 +1,9 @@
+import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+load_dotenv()
 app= FastAPI()
 # this defines the data structure 
 class DataInput(BaseModel):
@@ -27,3 +31,8 @@ def calculate_stats(data: DataInput):
         "variance": variance,
         "standard_deviation": std_dev,
     }
+@app.get("/")
+def root():
+   return{"app":os.getenv("APP_NAME", "Statistics API")}
+
+   
