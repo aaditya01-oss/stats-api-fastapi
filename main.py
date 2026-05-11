@@ -1,10 +1,29 @@
 import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+import logging
+import time
+from fastapi import Request
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("stats-api")
 from dotenv import load_dotenv
 
 load_dotenv()
 app= FastAPI()
+#middleware for logging
+@app.middleware("http")
+async def log_requests(request:Request, call_next):
+    start=time.time()
+    response=await call_next(request)
+    duration=(time.time()-start)*1000
+    logger.info(f"{request.method} {request.url.path} -{response.status_code}  -{duration:.2f}ms")
+    return response
+
+
+#routes
+@app.get("/")
+def root():
+   return{"app":os.getenv("APP_NAME", "Statistics API")}
 # this defines the data structure 
 class DataInput(BaseModel):
   numbers: list[float]
@@ -31,8 +50,6 @@ def calculate_stats(data: DataInput):
         "variance": variance,
         "standard_deviation": std_dev,
     }
-@app.get("/")
-def root():
-   return{"app":os.getenv("APP_NAME", "Statistics API")}
+
 
    
